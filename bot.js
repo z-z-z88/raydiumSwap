@@ -31,18 +31,14 @@ async function init(){
 }
 function run(raySwap, settings, counter, walletsCount, timeout){
     //loop through wallets
-    //set keys for current wallet
-    let secretKey = Uint8Array.from(settings.wallets[counter].secret);
-    let publicAddress = raySwap.useWallet(secretKey);
-    console.log('Processing wallet: '+publicAddress);
-
     //get wallet data
     let base = settings.wallets[counter].base;
     let quote = settings.wallets[counter].quote;
     let amount= settings.wallets[counter].amount;
+    let secretKey = settings.wallets[counter].secret;
 
     //swap for current wallet
-    swap(raySwap, base, quote, amount);
+    swap(raySwap, base, quote, amount, secretKey);
     if(counter == walletsCount-1) {
         console.log('All wallets has been processed. Finished.');
         return;
@@ -60,8 +56,12 @@ function saveDecimals(data){
     fs.writeFileSync('decimals.json', JSON.stringify(data));
     console.log('Decimals info has been saved to decimals.json');
 }
-async function swap(raySwap, base, quote, amount)
+async function swap(raySwap, base, quote, amount, secretKey)
 {
+    //set keys for current wallet
+    let publicAddress = raySwap.useWallet(Uint8Array.from(secretKey));
+    console.log('Processing wallet: '+publicAddress);
+    
     //find pool keys for our tokens
     let poolKeys = await raySwap.findPoolKeys(base, quote);
     if (poolKeys === false) {
